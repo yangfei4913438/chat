@@ -22,6 +22,8 @@ class Master:
     def __init__(self, user_id: str = "user_id"):
         # 创建 chat model
         self.chatModel = ChatOpenAI(
+            api_key=os.getenv('OPENAI_API_KEY'),
+            base_url=os.getenv('OPENAI_API_BASE'),
             streaming=True,  # 支持流式处理, 支持 websocket
             temperature=0,  # 不让模型生成随机性
         )

@@ -68,7 +68,13 @@ def shengxiao(query: str):
     prompt = prompt.partial(
         format_instructions=parser.get_format_instructions())
 
-    chain = prompt | ChatOpenAI(temperature=0) | parser
+    llm = ChatOpenAI(
+        api_key=os.getenv('OPENAI_API_KEY'),
+        base_url=os.getenv('OPENAI_API_BASE'),
+        temperature=0
+    )
+
+    chain = prompt | llm | parser
 
     data = chain.invoke({"query": query})
 
@@ -129,7 +135,13 @@ def bazi_cesuan(query: str):
     prompt = prompt.partial(
         format_instructions=parser.get_format_instructions())
 
-    chain = prompt | ChatOpenAI(temperature=0) | parser
+    llm = ChatOpenAI(
+        api_key=os.getenv('OPENAI_API_KEY'),
+        base_url=os.getenv('OPENAI_API_BASE'),
+        temperature=0
+    )
+
+    chain = prompt | llm | parser
 
     data = chain.invoke({"query": query})
 
@@ -194,7 +206,11 @@ def yaogua(query: str):
 def jiemeng(query: str):
     """只有用户想要解梦的时候才会使用这个工具,需要输入用户梦境的内容，如果缺少用户梦境的内容则不可用。"""
 
-    llm = OpenAI(temperature=0)
+    llm = OpenAI(
+        api_key=os.getenv('OPENAI_API_KEY'),
+        base_url=os.getenv('OPENAI_API_BASE'),
+        temperature=0
+    )
 
     prompt = PromptTemplate.from_template("根据内容提取1个关键词，只返回关键词，内容为:{topic}")
 
