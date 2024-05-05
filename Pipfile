@@ -1,0 +1,30 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[[source]]
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+verify_ssl = true
+name = "tsinghua"
+
+[packages]
+fastapi = "*"
+redis = "*"
+qdrant-client = "*"
+langchain = "*"
+langchain-core = "*"
+langchain-openai = "*"
+langchain-community = "*"
+uvicorn = {extras = ["standard"], version = "*"}
+google-search-results = "*"
+langchain-text-splitters = "*"
+lxml = "*"
+pypdf = "*"
+oss2 = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.12"
+python_full_version = "3.12.2"

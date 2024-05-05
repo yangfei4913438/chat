@@ -1,0 +1,13 @@
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea
+.DS_Store
+.env
+
+docker-compose.yml
+
+local_qdrant
+__pycache__
+**/*/__pycache__
