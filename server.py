@@ -29,7 +29,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-set_debug(False)
+# 设置调试模式
+set_debug(True)
 
 
 @app.get("/")

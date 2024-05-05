@@ -20,6 +20,10 @@ tools = [local_db, bazi_cesuan, jiemeng, yaogua, shengxiao, search]
 
 class Master:
     def __init__(self, user_id: str = "user_id"):
+        print('------------------------Master初始化开始, 获取环境变量-------------------------')
+        print('api_key:', os.getenv('OPENAI_API_KEY'))
+        print('base_url:', os.getenv('OPENAI_API_BASE'))
+        print('------------------------准备初始化 OPENAI -------------------------')
         # 创建 chat model
         self.chatModel = ChatOpenAI(
             api_key=os.getenv('OPENAI_API_KEY'),
@@ -27,6 +31,7 @@ class Master:
             streaming=True,  # 支持流式处理, 支持 websocket
             temperature=0,  # 不让模型生成随机性
         )
+        print('---------------------------chatModel创建成功-----------------------')
         self.QingXu = "default"
         # 创建内存 key
         self.memory_key = "chat_history"
