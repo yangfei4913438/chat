@@ -20,10 +20,6 @@ tools = [local_db, bazi_cesuan, jiemeng, yaogua, shengxiao, search]
 
 class Master:
     def __init__(self, user_id: str = "user_id"):
-        print('------------------------Master初始化开始, 获取环境变量-------------------------')
-        print('api_key:', os.getenv('OPENAI_API_KEY'))
-        print('base_url:', os.getenv('OPENAI_API_BASE'))
-        print('------------------------准备初始化 OPENAI -------------------------')
         # 创建 chat model
         self.chatModel = ChatOpenAI(
             api_key=os.getenv('OPENAI_API_KEY'),

@@ -30,7 +30,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 # 设置调试模式
-set_debug(True)
+set_debug(False)
 
 
 @app.get("/")
@@ -42,28 +42,20 @@ def read_root():
 def chat(background_tasks: BackgroundTasks, query: str, user_id: str = "user_id"):
     """ 对话接口 """
 
-    print("用户ID:", user_id, "查询内容:", query)
     # 创建 Master
     master = Master(user_id)
 
-    print("Master创建无异常，继续。。。。")
+    # 运行查询
+    msg = master.run(query)
 
-    try:
-        # 运行查询
-        msg = master.run(query)
+    # 生成唯一标识
+    uid = str(uuid.uuid4())
+    # 添加到后台任务
+    background_tasks.add_task(
+        master.background_voice_synthesis, msg["output"], uid)
 
-        # 生成唯一标识
-        uid = str(uuid.uuid4())
-        # 添加到后台任务
-        background_tasks.add_task(
-            master.background_voice_synthesis, msg["output"], uid)
-
-        # 返回结果
-        return {"msg": msg["output"], "id": uid}
-
-    except Exception as e:
-        print("Master 运行异常:", e)
-        return {"msg": "对话异常", "id": e}
+    # 返回结果
+    return {"msg": msg["output"], "id": uid}
 
 
 @app.post("/add_url")
