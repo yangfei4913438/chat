@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from fastapi import (BackgroundTasks, FastAPI, HTTPException, UploadFile,
                      WebSocket, WebSocketDisconnect)
+from fastapi.staticfiles import StaticFiles
 from langchain.document_loaders.pdf import PyPDFLoader
 from langchain.globals import set_debug
 from langchain_community.vectorstores.qdrant import Qdrant
@@ -28,6 +29,9 @@ async def lifespan(app: FastAPI):
     print("关闭时执行的回调方法")
 
 app = FastAPI(lifespan=lifespan)
+
+# 静态文件服务
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # 设置调试模式
 set_debug(False)
