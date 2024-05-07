@@ -12,6 +12,7 @@ from langchain_community.vectorstores.qdrant import Qdrant
 from langchain_openai import OpenAIEmbeddings
 from langchain_text_splitters import (
     CharacterTextSplitter, HTMLHeaderTextSplitter)
+from pydantic import BaseModel
 
 from chat_agent import Master
 from chat_consts import qdrant_path
@@ -42,15 +43,23 @@ def read_root():
     return {"Hello": "World"}
 
 
+class ChatBody(BaseModel):
+    """ 对话请求体 """
+    # 对话内容
+    query: str
+    # 用户ID，用于标识用户
+    user_id: str = "user_id"
+
+
 @app.post("/chat")
-def chat(background_tasks: BackgroundTasks, query: str, user_id: str = "user_id"):
+def chat(background_tasks: BackgroundTasks, body: ChatBody):
     """ 对话接口 """
 
     # 创建 Master
-    master = Master(user_id)
+    master = Master(body.user_id)
 
     # 运行查询
-    msg = master.run(query)
+    msg = master.run(body.query)
 
     # 生成唯一标识
     uid = str(uuid.uuid4())
