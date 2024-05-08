@@ -25,9 +25,9 @@ load_dotenv()
 # 定义生命周期回调
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    log.debug("启动时执行的回调方法")
+    log.info("ai服务启动")
     yield
-    log.debug("关闭时执行的回调方法")
+    log.info("ai服务关闭")
 
 app = FastAPI(lifespan=lifespan)
 
