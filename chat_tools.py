@@ -416,7 +416,7 @@ def zeshi(query: str):
 
 @tool
 def qiming(query: str):
-    """只有在起名的时候，才会调用这个工具。需要提供，被起名的人的姓氏和性别，如果缺少这些信息则不可用。只有符合条件的时候才会调用这个工具。"""
+    """只有在起名的时候，才会调用这个工具。起名需要提供，被起名的人的姓氏和性别，如果缺少这些信息则不可用。只有符合条件的时候才会调用这个工具。"""
 
     log.info("开始起名的查询: %s", query)
 
@@ -452,7 +452,7 @@ def qiming(query: str):
         "api_key": os.getenv("TOOLS_MINGLI_KEY"),
         **data,
         "page": 1,
-        "limit": 30,
+        "limit": 50,
     }
 
     result = requests.post(
@@ -465,7 +465,7 @@ def qiming(query: str):
             res = result.json()["data"]
             data = res["list"]
             log.info("起名的最终数据: %s", data)
-            return f"{data}, 从这些名字中，选择三个好记忆的名字，如果用户提供了母亲的姓氏，那么名字尽量选择和母亲姓氏有关联的。最后，分别带上每个名字的详细含义、五行属性，五行的含义，和选中这个名字的具体理由，返回给用户。"
+            return f"{data}, 从这些名字中，选择三个好记忆的名字，如果用户提供了被起名人母亲的姓氏，那么名字尽量选择和被起名人母亲的姓氏的五行属性有关联的名字。最后，分别带上每个名字的详细含义、五行属性，五行的含义，以及选中这个名字的具体理由，返回给用户。"
         except Exception as e:
             log.error("提取 json 出错了: %s", e)
             return "起名失败, 可能是你忘记询问用户必填的相关信息了。"
