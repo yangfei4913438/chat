@@ -6,6 +6,7 @@
 .DS_Store
 .env
 
+ai.log
 docker-compose.yml
 
 local_qdrant

@@ -11,11 +11,15 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
 
 from chat_template import moods, sys_template
-from chat_tools import bazi_cesuan, jiemeng, local_db, search, shengxiao, yaogua
+from chat_tools import bazi_cesuan, jiemeng, local_db, search, shengxiao, yaogua, jiuxing, bazi_hehun, weilai, chenggu, zeshi, qiming
 from utils.oss import upload
 
+from custom_log import log
+
 # 创建工具集
-tools = [local_db, bazi_cesuan, jiemeng, yaogua, shengxiao, search]
+tools = [
+    local_db, bazi_cesuan, jiemeng, yaogua, shengxiao, jiuxing, bazi_hehun, weilai, chenggu, zeshi, qiming, search
+]
 
 
 class Master:
@@ -27,7 +31,6 @@ class Master:
             streaming=True,  # 支持流式处理, 支持 websocket
             temperature=0,  # 不让模型生成随机性
         )
-        print('---------------------------chatModel创建成功-----------------------')
         self.QingXu = "default"
         # 创建内存 key
         self.memory_key = "chat_history"
@@ -77,6 +80,8 @@ class Master:
         )
 
     def run(self, query):
+        log.info("执行用户输入: %s", query)
+
         # 提取用户的情绪类型
         self.qingxu_chain(query)
 
@@ -99,11 +104,14 @@ class Master:
         #     # 返回结果
         #     return doc.content
 
+        log.info("返回结果: %s", result)
         # 返回结果
         return result
 
     def get_memory(self, user_id: str):
         """获取内存，基于 redis 实现"""
+        log.info('获取用户内存: %s', user_id)
+
         chat_history = RedisChatMessageHistory(
             url=os.getenv("REDIS_URL"),
             session_id=user_id,  # 会话 id, 这里是模拟，实际需要传入登录用户的 ID
@@ -129,7 +137,7 @@ class Master:
                 # 添加摘要到历史记录
                 chat_history.add_message(summary)
             except Exception as e:
-                print('摘要历史会话出错:', e)
+                log.error('摘要历史会话出错: %s', e)
                 # 清空异常的历史记录
                 chat_history.clear()
                 # 恢复历史记录
@@ -138,6 +146,8 @@ class Master:
         return chat_history
 
     def qingxu_chain(self, query: str):
+        log.info("情绪判断开始")
+
         template = """根据用户的输入，判断用户的情绪，回应规则如下:
         1. 如果用户输入的内容偏向于负面情绪，只返回"depresed"，不要有其他内容，否则将受到惩罚。
         2. 如果用户输入的内容偏向于正面情绪，只返回"friendly"，不要有其他内容，否则将受到惩罚。
@@ -152,18 +162,18 @@ class Master:
         chain = prompt | self.chatModel | StrOutputParser()
         result = chain.invoke({"query": query})
         self.QingXu = result
-        print("情绪判断结果:", result)
+        log.info("情绪判断结果: %s", result)
         return result
 
     def background_voice_synthesis(self, text: str, uid: str):
         """这个函数不需要返回值，只是触发语音合成"""
-        print('background_voice_synthesis,传入参数:', text, uid)
+        log.info('触发语音合成')
         # 异步调用
         asyncio.run(self.get_voice(text, uid))
 
     async def get_voice(self, text: str, uid: str):
         """获取语音"""
-        print('获取语音,传入参数:', text, uid)
+        log.info('获取语音执行')
 
         # 使用微软语音合成, 具体参数可以参考微软文档 https://learn.microsoft.com/en-us/azure/ai-services/speech-service/rest-text-to-speech?tabs=streaming
 
@@ -192,10 +202,12 @@ class Master:
         )
 
         if response.status_code == 200:
-            print('语音合成成功')
-
-            # 上传到云端
-            upload(f'{uid}.mp3', response.content)
-            print('上传成功')
+            log.info('语音合成成功')
+            try:
+                # 上传到云端
+                upload(f'{uid}.mp3', response.content)
+                log.info('上传成功')
+            except Exception as e:
+                log.error('上传失败: %s', e)
         else:
-            print('语音合成失败')
+            log.error('语音合成失败: %s', response)

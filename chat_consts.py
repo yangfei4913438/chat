@@ -1,4 +1,5 @@
 import os
+from custom_log import log
 
 
 def qdrant_path(path: str = "local_qdrant") -> str:
@@ -9,10 +10,10 @@ def qdrant_path(path: str = "local_qdrant") -> str:
 
     # 将目录路径组合起来
     dir_path = os.path.join(current_dir, path)
-    print("目录路径:", dir_path)
+    log.info("目录路径: %s", dir_path)
 
     # 获取目录的绝对路径
     absolute_dir_path = os.path.abspath(dir_path)
-    print("绝对路径:", absolute_dir_path)
+    log.info("绝对路径: %s", absolute_dir_path)
 
     return absolute_dir_path

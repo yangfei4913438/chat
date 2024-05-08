@@ -16,7 +16,7 @@ from pydantic import BaseModel
 
 from chat_agent import Master
 from chat_consts import qdrant_path
-
+from custom_log import log
 
 # 加载环境变量配置文件
 load_dotenv()
@@ -25,9 +25,9 @@ load_dotenv()
 # 定义生命周期回调
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("启动时执行的回调方法")
+    log.debug("启动时执行的回调方法")
     yield
-    print("关闭时执行的回调方法")
+    log.debug("关闭时执行的回调方法")
 
 app = FastAPI(lifespan=lifespan)
 
@@ -94,7 +94,7 @@ def add_url(url: str):
         path=qdrant_path(),
         collection_name="local_documents"
     )
-    print("向量数据库创建成功:", qdrant.client.get_collections())
+    log.info("向量数据库创建成功: %s", qdrant.client.get_collections())
     return {"ok": "添加成功"}
 
 
@@ -122,7 +122,7 @@ async def add_pdf(pdf_file: UploadFile):
     # 加载并分割文档
     documents = PyPDFLoader(temp_file_path).load_and_split(text_splitter)
 
-    print("分割结果:", documents)
+    log.info("分割结果: %s", documents)
 
     # 删除临时文件
     os.remove(temp_file_path)
