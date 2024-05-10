@@ -1,5 +1,5 @@
 import os
-from custom_log import log
+from utils.custom_log import log
 
 
 def qdrant_path(path: str = "local_qdrant") -> str:

@@ -8,14 +8,16 @@ from qdrant_client import QdrantClient
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI, OpenAI
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
+# 多重查询
+from langchain.retrievers.multi_query import MultiQueryRetriever
 
 from chat_consts import qdrant_path
-from custom_log import log
+from utils.custom_log import log
 
 
 @tool
 def search(query: str):
-    """只有需要了解实时信息或不知道的事情的时候，才会调用这个工具，用于搜索相关信息"""
+    """只有其他工具都无法回答问题的时候，才会调用这个工具，用于搜索相关信息，进行兜底回复。"""
 
     log.info("开始搜索: %s", query)
 
@@ -37,29 +39,38 @@ def search(query: str):
 
 @tool
 def local_db(query: str):
-    """不管用户询问什么问题，都要优先调用这个工具来回答。这里是本地知识库，可以查询到本地已经学习到的知识。"""
+    """查询任何问题，都优先调用这个工具，这里是本地知识库。"""
 
     log.info("开始查询本地数据库: %s", query)
 
-    # 创建向量数据库
-    client = Qdrant(
-        client=QdrantClient(path=qdrant_path()),  # 指定向量数据库客户端
-        collection_name="local_documents",  # 指定集合名称
-        embeddings=OpenAIEmbeddings()  # 指定向量化工具
-    )
-    # 生成检索器
-    retriever = client.as_retriever(search_type="mmr")
-
     try:
+        # 创建向量数据库
+        client = Qdrant(
+            client=QdrantClient(path=qdrant_path()),  # 指定向量数据库客户端
+            collection_name="local_documents",  # 指定集合名称
+            embeddings=OpenAIEmbeddings()  # 指定向量化工具
+        )
+
+        # 生成检索器, 指定检索类型为 mmr
+        retriever = client.as_retriever(search_type="mmr")
+
+        # 把问题交给 llm, 进行多角度扩展
+        llm = ChatOpenAI(temperature=0)
+
+        # 多重查询，提高文档检索精确度
+        retriever_from_llm = MultiQueryRetriever.from_llm(
+            llm=llm, retriever=retriever)
+
         # 获取相关文档
-        result = retriever.get_relevant_documents(query)
+        result = retriever_from_llm.get_relevant_documents(query)
 
         log.info("返回本地数据库查询结果: %s", result)
 
+        # 返回结果
         return result
     except Exception as e:
         log.error("查询本地数据库出错了: %s", e)
-        return f"本地数据库没有查到数据，你换其他工具继续查询: {query}"
+        return f"本地知识库没有查到数据，你换其他工具继续查询: {query}"
 
 
 @tool
@@ -115,7 +126,7 @@ def shengxiao(query: str):
             return "生肖配对失败, 可能是你忘记询问用户相关信息了。"
     else:
         log.error("返回数据异常: %s", result)
-        return f"生肖配对查询失败, 换个工具继续查询: {query}"
+        return f"生肖配对查询失败, 你换其他工具继续查询 {query}"
 
 
 @tool
@@ -198,7 +209,7 @@ def bazi_hehun(query: str):
             return "八字合婚查询失败, 可能是你忘记询问用户必填的相关信息了。"
     else:
         log.error("返回数据异常: %s", result)
-        return f"八字合婚查询失败, 换个工具继续查询: {query}"
+        return f"八字合婚查询失败, 你换其他工具继续查询: {query}"
 
 
 @tool
@@ -270,7 +281,7 @@ def weilai(query: str):
             return "未来运势查询失败, 可能是你忘记询问用户必填的相关信息了。"
     else:
         log.error("返回数据异常: %s", result)
-        return f"未来运势查询失败, 换个工具继续查询: {query}"
+        return f"未来运势查询失败, 你换其他工具继续查询: {query}"
 
 
 @tool
@@ -339,7 +350,7 @@ def chenggu(query: str):
             return "称骨论命查询失败, 可能是你忘记询问用户必填的相关信息了。"
     else:
         log.error("返回数据异常: %s", result)
-        return f"称骨论命查询失败, 换个工具继续查询: {query}"
+        return f"称骨论命查询失败, 你换其他工具继续查询: {query}"
 
 
 @tool
@@ -411,7 +422,7 @@ def zeshi(query: str):
             return "择吉日查询失败, 可能是你忘记询问用户必填的相关信息了。"
     else:
         log.error("返回数据异常: %s", result)
-        return f"择吉日查询失败, 换个工具继续查询: {query}"
+        return f"择吉日查询失败, 你换其他工具继续查询: {query}"
 
 
 @tool
@@ -471,7 +482,7 @@ def qiming(query: str):
             return "起名失败, 可能是你忘记询问用户必填的相关信息了。"
     else:
         log.error("返回数据异常: %s", result)
-        return f"起名查询失败, 换个工具继续查询: {query}"
+        return f"起名查询失败, 你换其他工具继续查询: {query}"
 
 
 @tool
@@ -535,7 +546,7 @@ def bazi_cesuan(query: str):
         return result.json()["data"]
     else:
         log.error("返回数据异常: %s", result)
-        return f"八字测算查询失败, 换个工具继续查询: {query}"
+        return f"八字测算查询失败, 你换其他工具继续查询: {query}"
 
 
 @tool
@@ -574,7 +585,7 @@ def yaogua(query: str):
             return "摇卦失败，请告诉用户稍后再试"
     else:
         log.error("返回数据异常: %s", result)
-        return f"摇卦查询失败, 换个工具继续查询: {query}"
+        return f"摇卦查询失败, 你换其他工具继续查询: {query}"
 
 
 @tool
@@ -639,7 +650,7 @@ def jiuxing(query: str):
             return "九星运势查询失败, 可能是你忘记询问用户必填的相关信息了。"
     else:
         log.error("返回数据异常: %s", result)
-        return f"九星运势查询失败, 换个工具继续查询: {query}"
+        return f"九星运势查询失败, 你换其他工具继续查询: {query}"
 
 
 @tool
@@ -678,4 +689,4 @@ def jiemeng(query: str):
         return res["data"][-3:]
     else:
         log.error("返回数据异常: %s", result)
-        return f"解梦查询失败, 换个工具继续查询: {query}"
+        return f"解梦查询失败, 你换其他工具继续查询: {query}"

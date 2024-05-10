@@ -4,21 +4,20 @@ import os
 import requests
 from langchain.agents import AgentExecutor, create_openai_tools_agent
 from langchain.memory import ConversationTokenBufferMemory
-from langchain_community.chat_message_histories.redis import \
-    RedisChatMessageHistory
+from langchain_community.chat_message_histories.redis import RedisChatMessageHistory
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
 
-from chat_template import moods, sys_template
-from chat_tools import bazi_cesuan, jiemeng, local_db, search, shengxiao, yaogua, jiuxing, bazi_hehun, weilai, chenggu, zeshi, qiming
+from agents.templates import moods, sys_template
+from agents.tools import bazi_cesuan, jiemeng, local_db, search, shengxiao, yaogua, jiuxing, bazi_hehun, weilai, chenggu, zeshi, qiming
 from utils.oss import upload
 
-from custom_log import log
+from utils.custom_log import log
 
 # 创建工具集
 tools = [
-    local_db, bazi_cesuan, jiemeng, yaogua, shengxiao, jiuxing, bazi_hehun, weilai, chenggu, zeshi, qiming, search
+    search, local_db, bazi_cesuan, jiemeng, yaogua, shengxiao, jiuxing, bazi_hehun, weilai, chenggu, zeshi, qiming
 ]
 
 
@@ -67,7 +66,7 @@ class Master:
         agent = create_openai_tools_agent(
             llm=self.chatModel,
             prompt=self.prompt,
-            tools=tools,
+            tools=tools
         )
 
         # 创建 agent 执行器
@@ -87,7 +86,7 @@ class Master:
 
         # 执行 agent
         result = self.agent_executor.invoke(
-            {"input": query},
+            {"input": f"{query}"},
             return_only_outputs=True  # 只返回output输出
         )
 

@@ -4,10 +4,6 @@ from pytz import timezone
 from datetime import datetime, time
 import os
 
-from dotenv import load_dotenv
-# 加载环境变量
-load_dotenv()
-
 
 # 创建日志记录器
 log = logging.getLogger('ai')
