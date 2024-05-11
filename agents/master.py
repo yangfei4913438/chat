@@ -1,4 +1,3 @@
-import asyncio
 import os
 
 import requests
@@ -163,12 +162,6 @@ class Master:
         self.QingXu = result
         log.info("情绪判断结果: %s", result)
         return result
-
-    def background_voice_synthesis(self, text: str, uid: str):
-        """这个函数不需要返回值，只是触发语音合成"""
-        log.info('触发语音合成')
-        # 异步调用
-        asyncio.run(self.get_voice(text, uid))
 
     async def get_voice(self, text: str, uid: str):
         """获取语音"""

@@ -1,16 +1,15 @@
 import os
+from typing import Optional
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, UploadFile, WebSocket, WebSocketDisconnect, Depends, HTTPException, status
-from fastapi import BackgroundTasks
+from fastapi import FastAPI, UploadFile, WebSocket, Depends, HTTPException, status
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
-
 from utils.custom_log import log
 from models.user import UserLogin, UserCreate, UserReturn, LoginReturn, UserUpdate
 from models.chat import ChatBody
 from services.guard import check_token
 from services.rag import save_file, add_url
-from services.chat import connect_ai
+from services.chat import connect_ai, connect_ws
 from services.user import create_user, user_login, delete_user, get_user, update_user
 from utils.db import get_db
 from utils.invite_code import generate_invitation_code
@@ -37,9 +36,9 @@ def read_root():
 
 
 @app.post("/chat")
-def chat(backgroundTasks: BackgroundTasks, body: ChatBody, user_id: int = Depends(check_token), ):
+def chat(body: ChatBody, user_id: int = Depends(check_token), ):
     """ 对话接口 """
-    return connect_ai(body.query, user_id, backgroundTasks)
+    return connect_ai(body.query, user_id)
 
 
 @app.post("/add_url", dependencies=[Depends(check_token)])
@@ -102,13 +101,13 @@ def update_user_info(user: UserUpdate, user_id: int = Depends(check_token), db: 
     return update_user(db, user_id, user)
 
 
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    """ WebSocket 服务 """
-    await websocket.accept()
-    while True:
-        try:
-            data = await websocket.receive_text()
-            await websocket.send_text(f"Message text was: {data}")
-        except WebSocketDisconnect:
-            break
+@app.websocket("/ws/{token}/{role:str}/{user_id:str}")
+async def websocket_endpoint_role(websocket: WebSocket, token: str, role: Optional[str] = None, user_id: Optional[str] = None):
+    """ WebSocket 服务, 有特权"""
+    await connect_ws(websocket, token, role, user_id)
+
+
+@app.websocket("/ws/{token}")
+async def websocket_endpoint(websocket: WebSocket, token: str):
+    """ WebSocket 服务, 无特权 """
+    await connect_ws(websocket, token, None, None)

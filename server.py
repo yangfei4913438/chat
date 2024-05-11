@@ -9,6 +9,11 @@ from routers import app
 
 from utils.db import init_db
 
+
+import tracemalloc
+
+tracemalloc.start()
+
 # 设置调试模式
 set_debug(False)
 
