@@ -23,8 +23,6 @@ def connect_ai(query: str, user_id: str):
     # 运行查询
     result = master.run(query)
 
-    log.info("AI: %s", result)
-
     data = result["output"]
 
     # 添加到后台任务

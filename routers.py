@@ -36,7 +36,7 @@ def read_root():
 
 
 @app.post("/chat")
-def chat(body: ChatBody, user_id: int = Depends(check_token), ):
+async def chat(body: ChatBody, user_id: int = Depends(check_token), ):
     """ 对话接口 """
     return connect_ai(body.query, user_id)
 
