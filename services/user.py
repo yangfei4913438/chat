@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 
 from utils.db import redis_client
 from database.user import UserDB
@@ -15,8 +15,11 @@ def create_user(db: Session, user: UserCreate):
         # 删除邀请码
         redis_client.delete(user.invite_code)
     else:
-        # 返回 401 错误
-        raise HTTPException(status_code=401, detail="无效的邀请码")
+        # 返回 403 错误, 无效的邀请码, 禁止访问
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="无效的邀请码"
+        )
 
     hashed_password = pwd_context.hash(user.password)
     db_user = UserDB(

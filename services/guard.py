@@ -1,4 +1,4 @@
-from fastapi import Depends, Header, HTTPException
+from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from typing import Optional
@@ -21,9 +21,9 @@ async def check_token(
     if Role == os.getenv("INVITE_CODE_ROLE"):
         log.info("拥有邀请码生成权限，无需校验token，使用自带用户id: %s", UserId)
         if not UserId:
-            log.error("特权用户，没有提供 user_id，返回 403 错误")
+            log.error("特权用户，没有提供 user_id，返回 401 错误")
             raise HTTPException(
-                status_code=403,
+                status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="这位大老爷，你还没有提供 user_id 啊！"
             )
         # 特权通过，返回用户id

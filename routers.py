@@ -60,7 +60,11 @@ def invite_code(role: str):
     if role == os.getenv("INVITE_CODE_ROLE"):
         return {"invite_code": generate_invitation_code()}
     else:
-        raise HTTPException(status_code=401, detail="没有操作权限")
+        # 禁止访问 403
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="没有操作权限"
+        )
 
 
 @app.post("/register", response_model=UserReturn)
@@ -74,9 +78,9 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
     """ 用户登录 """
     info = user_login(db, user)
     if not info:
-        # 返回 401 错误
+        # 返回 403 错误，没有权限，禁止访问
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_403_FORBIDDEN,
             detail="无效的账号或密码",
         )
     # 返回登录信息

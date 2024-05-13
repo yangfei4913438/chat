@@ -17,7 +17,7 @@ async def save_file(file: UploadFile):
     if not save_docs.check_file_extension(file.filename):
         log.error("不支持的文件类型")
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="不支持的文件类型"
         )
 
@@ -73,7 +73,7 @@ def add_url(url: str):
     if not result:
         log.error("保存网页失败")
         raise HTTPException(
-            status_code=500,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="保存网页失败"
         )
     else:
