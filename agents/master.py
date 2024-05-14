@@ -24,6 +24,7 @@ class Master:
     def __init__(self, user_id: str = "user_id"):
         # 创建 chat model
         self.chatModel = ChatOpenAI(
+            model=os.getenv('OPENAI_MODEL'),
             api_key=os.getenv('OPENAI_API_KEY'),
             base_url=os.getenv('OPENAI_API_BASE'),
             streaming=True,  # 支持流式处理, 支持 websocket
@@ -40,7 +41,7 @@ class Master:
             ai_prefix="周大师",  # AI 的前缀
             memory_key=self.memory_key,  # 内存 key
             output_key="output",  # 输出 key
-            max_token_limit=1000,  # 最大 token 限制，避免内存使用无限增长
+            max_token_limit=4000,  # 最大 token 限制，避免内存使用无限增长
             return_messages=True,  # 返回消息
             chat_memory=self.memory,  # 聊天内存
         )
@@ -85,7 +86,7 @@ class Master:
 
         # 执行 agent
         result = self.agent_executor.invoke(
-            {"input": f"{query}"},
+            {"input": query},
             return_only_outputs=True  # 只返回output输出
         )
 

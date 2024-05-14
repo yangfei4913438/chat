@@ -55,7 +55,10 @@ def local_db(query: str):
         retriever = client.as_retriever(search_type="mmr")
 
         # 把问题交给 llm, 进行多角度扩展
-        llm = ChatOpenAI(temperature=0)
+        llm = ChatOpenAI(
+            model=os.getenv('OPENAI_MODEL'),
+            temperature=0
+        )
 
         # 多重查询，提高文档检索精确度
         retriever_from_llm = MultiQueryRetriever.from_llm(
@@ -93,6 +96,7 @@ def shengxiao(query: str):
         format_instructions=parser.get_format_instructions())
 
     llm = ChatOpenAI(
+        model=os.getenv('OPENAI_MODEL'),
         api_key=os.getenv('OPENAI_API_KEY'),
         base_url=os.getenv('OPENAI_API_BASE'),
         temperature=0
@@ -165,6 +169,7 @@ def bazi_hehun(query: str):
         format_instructions=parser.get_format_instructions())
 
     llm = ChatOpenAI(
+        model=os.getenv('OPENAI_MODEL'),
         api_key=os.getenv('OPENAI_API_KEY'),
         base_url=os.getenv('OPENAI_API_BASE'),
         temperature=0
@@ -246,6 +251,7 @@ def weilai(query: str):
         format_instructions=parser.get_format_instructions())
 
     llm = ChatOpenAI(
+        model=os.getenv('OPENAI_MODEL'),
         api_key=os.getenv('OPENAI_API_KEY'),
         base_url=os.getenv('OPENAI_API_BASE'),
         temperature=0
@@ -313,6 +319,7 @@ def chenggu(query: str):
         format_instructions=parser.get_format_instructions())
 
     llm = ChatOpenAI(
+        model=os.getenv('OPENAI_MODEL'),
         api_key=os.getenv('OPENAI_API_KEY'),
         base_url=os.getenv('OPENAI_API_BASE'),
         temperature=0
@@ -376,6 +383,7 @@ def zeshi(query: str):
         format_instructions=parser.get_format_instructions())
 
     llm = ChatOpenAI(
+        model=os.getenv('OPENAI_MODEL'),
         api_key=os.getenv('OPENAI_API_KEY'),
         base_url=os.getenv('OPENAI_API_BASE'),
         temperature=0
@@ -447,6 +455,7 @@ def qiming(query: str):
         format_instructions=parser.get_format_instructions())
 
     llm = ChatOpenAI(
+        model=os.getenv('OPENAI_MODEL'),
         api_key=os.getenv('OPENAI_API_KEY'),
         base_url=os.getenv('OPENAI_API_BASE'),
         temperature=0
@@ -519,6 +528,7 @@ def bazi_cesuan(query: str):
         format_instructions=parser.get_format_instructions())
 
     llm = ChatOpenAI(
+        model=os.getenv('OPENAI_MODEL'),
         api_key=os.getenv('OPENAI_API_KEY'),
         base_url=os.getenv('OPENAI_API_BASE'),
         temperature=0
@@ -618,6 +628,7 @@ def jiuxing(query: str):
         format_instructions=parser.get_format_instructions())
 
     llm = ChatOpenAI(
+        model=os.getenv('OPENAI_MODEL'),
         api_key=os.getenv('OPENAI_API_KEY'),
         base_url=os.getenv('OPENAI_API_BASE'),
         temperature=0
@@ -660,6 +671,7 @@ def jiemeng(query: str):
     log.info("开始查询解梦: %s", query)
 
     llm = OpenAI(
+        model=os.getenv('OPENAI_MODEL'),
         api_key=os.getenv('OPENAI_API_KEY'),
         base_url=os.getenv('OPENAI_API_BASE'),
         temperature=0

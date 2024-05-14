@@ -1,12 +1,12 @@
 import os
-import jwt
 from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException, status
 from passlib import context
+import jwt
 
 from utils.db import get_db
-from utils.user import get_user_by_id
-
+from utils.query_db import get_user_by_id
+from utils.custom_log import log
 
 # 配置 JWT
 # 秘钥
@@ -47,6 +47,7 @@ def verify_token(token: str):
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str = payload.get("user_id")
         if user_id is None:
+            log.error("用户 id 不存在")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="无效的凭证"
@@ -57,12 +58,13 @@ def verify_token(token: str):
         db = next(get_db())
         user = get_user_by_id(db, user_id)
         if not user or not user.is_active:
+            log.error("用户不存在或者被禁用了")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="无效的凭证"
             )
 
-        return user_id
+        return int(user_id)
 
     except jwt.PyJWTError as exc:
         raise HTTPException(

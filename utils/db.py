@@ -1,8 +1,10 @@
 import os
 import redis
+import json
 from sqlalchemy import create_engine, orm
-
-from database.user import Base
+from utils.custom_log import log
+from utils.orm import Base
+from database import *
 
 
 # 创建数据库模型
@@ -18,6 +20,29 @@ redis_client = redis.Redis(
     db=os.getenv("REDIS_DB"),
     password=os.getenv("REDIS_PASSWORD")
 )
+# 注意： 由于项目时间关系，我就不精细化处理内存数据了，有任何改动，对应 key 的数据会全部清理掉。
+# 比如列表的数据变动，我会把整个列表从 redis 清空。不会精细的修改内存数据。
+
+
+def obj_list_into_redis(list_name: str, list_data: list):
+    """ 将列表数据存入 Redis，兼容普通类型的数据 """
+    # 先清理旧数据
+    redis_client.delete(list_name)
+    # 序列化数据
+    data = [json.dumps(i) for i in list_data]
+    # 存入 Redis
+    redis_client.rpush(list_name, *data)
+
+
+def obj_list_from_redis(list_name: str):
+    """ 从 Redis 中获取列表数据 """
+    # 获取数据
+    data = redis_client.lrange(list_name, 0, -1)
+    if not data:
+        log.info("Redis 中没有数据: %s", data)
+        return None
+    # 反序列化数据
+    return [json.loads(i) for i in data]
 
 
 def init_db():

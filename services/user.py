@@ -5,7 +5,8 @@ from utils.db import redis_client
 from database.user import UserDB
 from models.user import UserCreate, UserLogin, UserReturn, UserUpdate
 from services.auth import pwd_context, verify_password, create_token
-from utils.user import get_user_by_id, get_user_by_username
+from utils.query_db import get_user_by_id, get_user_by_username, check_user_name
+from utils.custom_log import log
 
 
 def create_user(db: Session, user: UserCreate):
@@ -21,9 +22,19 @@ def create_user(db: Session, user: UserCreate):
             detail="无效的邀请码"
         )
 
+    can_use = check_user_name(db, user.username)
+    if not can_use:
+        log.error("用户名已存在，返回 400 错误: %s", user.username)
+        # 返回 400 错误, 用户名已存在, 禁止访问
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="用户名已存在"
+        )
+
     hashed_password = pwd_context.hash(user.password)
     db_user = UserDB(
         username=user.username,
+        nickname=user.nickname,
         email=user.email,
         hashed_password=hashed_password,
         invite_code=user.invite_code,
@@ -82,7 +93,18 @@ def update_user(db: Session, user_id: int, user: UserUpdate):
         target_user.hashed_password = pwd_context.hash(user.password)
 
     if user.username:
+        can_use = check_user_name(db, user.username)
+        if not can_use:
+            log.error("用户名已存在，返回 400 错误: %s", user.username)
+            # 返回 400 错误, 用户名已存在
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="用户名已存在"
+            )
         target_user.username = user.username
+
+    if user.nickname:
+        target_user.nickname = user.nickname
 
     if user.email:
         target_user.email = user.email
@@ -121,6 +143,7 @@ def get_return_user(user: UserDB):
     return UserReturn(
         id=user.id,
         username=user.username,
+        nickname=user.nickname,
         email=user.email,
         invite_code=user.invite_code,
         is_active=user.is_active

@@ -5,6 +5,7 @@ from langchain_text_splitters import CharacterTextSplitter
 from langchain_core.documents import Document
 from langchain_community.vectorstores.qdrant import Qdrant
 from langchain_openai import OpenAIEmbeddings
+import os
 
 
 from utils.custom_log import log
@@ -13,7 +14,7 @@ from chat_consts import qdrant_path
 
 def get_stuff_chain(verbose: bool = False):
     """ 获取一个预封装好的 stuff chain，用于小文本的处理"""
-    llm = ChatOpenAI(temperature=0, model="gpt-4-1106-preview")
+    llm = ChatOpenAI(temperature=0, model=os.getenv('OPENAI_MODEL'))
     stuff_chain = load_summarize_chain(
         llm=llm,
         chain_type="stuff",
@@ -24,7 +25,7 @@ def get_stuff_chain(verbose: bool = False):
 
 def get_map_reduce_chain(token_max: int = 4000, verbose: bool = False):
     """ 获取一个预封装好的 map reduce chain，用于大文本的处理"""
-    llm = ChatOpenAI(temperature=0, model="gpt-4-1106-preview")
+    llm = ChatOpenAI(temperature=0, model=os.getenv('OPENAI_MODEL'))
     map_reduce_chain = load_summarize_chain(
         llm=llm,
         chain_type="map_reduce",
@@ -63,7 +64,7 @@ def split_documents(text: str) -> list[Document]:
 def save_texts(texts: list[str]) -> bool:
     """ 保存文档到向量数据库 """
     try:
-        embedding = OpenAIEmbeddings(model="text-embedding-3-small")
+        embedding = OpenAIEmbeddings(model=os.getenv('OPENAI_MODEL'))
         # 引入向量数据库
         Qdrant.from_texts(
             texts=texts,
@@ -80,7 +81,7 @@ def save_texts(texts: list[str]) -> bool:
 def save_documents(documents: list[Document]) -> bool:
     """ 保存文档到向量数据库 """
     try:
-        embedding = OpenAIEmbeddings(model="text-embedding-3-small")
+        embedding = OpenAIEmbeddings(model=os.getenv('OPENAI_MODEL'))
         # 引入向量数据库
         Qdrant.from_documents(
             documents=documents,

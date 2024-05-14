@@ -5,19 +5,24 @@ import load_envs
 from langchain.globals import set_debug
 
 # 导入app实例
-from routers import app
+from router import app
 
 from utils.db import init_db
 
+import os
 
-import tracemalloc
+redis_host = os.getenv("REDIS_HOST")
 
-tracemalloc.start()
+if redis_host == 'localhost':
+    import tracemalloc
 
-# 设置调试模式
-set_debug(False)
+    tracemalloc.start()
 
-# 创建数据库表
+    # 设置调试模式
+    set_debug(False)
+
+
+# 创建数据库表, 如果表不存在的话
 init_db()
 
 
