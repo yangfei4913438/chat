@@ -29,6 +29,7 @@ def verify_password(password: str, hashed_password: str):
     """ 验证密码 """
     log.info('password: %s, hashed_password: %s', password, hashed_password)
     try:
+        # 成功返回 True
         return pwd_context.verify(hashed_password, password)
     except Exception as exc:
         log.error("密码验证失败: %s", exc)

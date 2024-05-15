@@ -19,15 +19,17 @@ def get_messages(tag_id: int, db: Session = Depends(get_db)):
     if not cache:
         # 没有就去数据库查询
         messages = get_messages_by_tag_id(db, tag_id)
-        
+
         if messages:
             # 转换数据, 存入内存需要把数据转换一下
             data = [message.to_dict() for message in messages]
             # 存入内存
             obj_list_into_redis(f"messages:{tag_id}", data)
-            
-        # 返回数据给用户，返回给用户的数据是框架自动处理的，不需要再序列化
-        return messages
+            # 返回数据给用户
+            return data
+
+        # 返回数据给用户
+        return []
 
     # 查询到了，直接返回数据给用户
     return cache

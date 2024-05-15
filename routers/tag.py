@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from models.tag import TagCreate, TagUpdate
 from services.guard import check_token
-from services.tag import get_tags, del_tag, create_tag, update_tag
-from utils.db import get_db, redis_client, obj_list_from_redis, obj_list_into_redis
+from services.tag import get_tags, del_tag, create_tag, update_tag, get_tag_by_id
+from utils.db import get_db, redis_client, obj_list_from_redis, obj_list_into_redis, obj_get_from_redis, obj_set_into_redis
 from utils.custom_log import log
 from utils.query_db import check_tag_id
 
@@ -27,8 +27,10 @@ def get_user_tags(user_id: int = Depends(check_token), db: Session = Depends(get
             log.info("存入 Redis 中: %s", tags_dict)
             obj_list_into_redis(f"tags:{user_id}", tags_dict)
 
-        # 返回数据给用户, 这里是框架自动处理的，不需要再序列化
-        return tags
+            # 返回数据给用户
+            return tags_dict
+
+        return []
 
     log.info("返回redis缓存数据给用户: %s", cache)
     # 查询到了，直接返回数据给用户
@@ -49,9 +51,34 @@ def del_user_tag(tag_id: int, user_id: int = Depends(check_token), db: Session =
 
     # 先删除内存中的数据。
     redis_client.delete(f"tags:{user_id}")
+    redis_client.delete(f"tag:{tag_id}")
 
     # 再删除数据库中的数据
     return del_tag(db, tag_id, user_id)
+
+
+@router.get("/tag/{tag_id}")
+def get_user_tag(tag_id: int, user_id: int = Depends(check_token), db: Session = Depends(get_db)):
+    """ 获取对话标签 """
+    # 先看缓存有没有
+    cache = obj_get_from_redis(f"tag:{tag_id}")
+    if not cache:
+        # 没有就去数据库查询
+        data = get_tag_by_id(db, tag_id, user_id)
+
+        if data:
+            log.info('从数据库中获取数据: %s', data)
+            # 转换数据
+            tag_dict = data.to_dict()
+            log.info("存入 Redis 中: %s", tag_dict)
+            obj_set_into_redis(f"tag:{tag_id}", tag_dict)
+            # 返回数据给用户
+            return tag_dict
+
+        return {}
+
+    # 查询到了，直接返回数据给用户
+    return cache
 
 
 @router.post("/tag")
@@ -85,6 +112,7 @@ def update_user_tag(tag: TagUpdate, user_id: int = Depends(check_token), db: Ses
 
     # 先删除内存中的列表数据。
     redis_client.delete(f"tags:{user_id}")
+    redis_client.delete(f"tag:{tag.id}")
 
     # 再更新数据库中的数据
     return update_tag(db, tag)

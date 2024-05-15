@@ -43,10 +43,26 @@ def obj_list_from_redis(list_name: str):
     # 获取数据
     data = redis_client.lrange(list_name, 0, -1)
     if not data:
-        log.info("Redis 中没有数据: %s", data)
+        log.info("Redis 中没有数据: %s", list_name)
         return None
     # 反序列化数据
     return [json.loads(i) for i in data]
+
+
+def obj_set_into_redis(key: str, value: any):
+    """ 将数据存入 Redis """
+    # 存入 Redis
+    redis_client.set(key, json.dumps(value))
+
+
+def obj_get_from_redis(key: str):
+    """ 从 Redis 中获取数据 """
+    # 获取数据
+    data = redis_client.get(key)
+    if not data:
+        log.error("Redis 中没有数据: %s", key)
+        return None
+    return json.loads(data)
 
 
 def init_db():

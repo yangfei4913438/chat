@@ -2,7 +2,6 @@ from sqlalchemy.orm import Session
 from database.user import UserDB
 from database.tag import TagDB
 from database.message import MessageDB
-from utils.custom_log import log
 
 
 def get_tag_by_id(db: Session, tag_id: int, user_id: int):
@@ -12,7 +11,7 @@ def get_tag_by_id(db: Session, tag_id: int, user_id: int):
 
 def get_tags_by_user_id(db: Session, user_id: int):
     """ 从数据库获取标签列表 """
-    return db.query(TagDB).filter(TagDB.user_id == user_id).order_by(TagDB.pin.desc(), TagDB.update_at.desc()).all()
+    return db.query(TagDB).filter(TagDB.user_id == user_id).order_by(TagDB.pin.desc(), TagDB.updated_at.desc()).all()
 
 
 def check_tag_name(db: Session, new_tag_name: str):

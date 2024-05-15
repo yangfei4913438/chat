@@ -17,13 +17,13 @@ class UserDB(Base):
     hashed_password = Column(String, comment="哈希密码")
     invite_code = Column(String, comment="邀请码")
     is_active = Column(Boolean, default=True, comment="是否激活")
-    # 注意：create_at 在创建时设置为当前时间，之后不会更改。
-    create_at = Column(DateTime,
-                       default=lambda: datetime.now(timezone.utc), comment="创建时间")
-    # 注意：update_at 在每次更新实体时都会设置为当前时间。
-    update_at = Column(DateTime,
-                       default=lambda: datetime.now(timezone.utc),
-                       onupdate=lambda: datetime.now(timezone.utc), comment="更新时间")
+    # 注意：created_at 在创建时设置为当前时间，之后不会更改。
+    created_at = Column(DateTime,
+                        default=lambda: datetime.now(timezone.utc), comment="创建时间")
+    # 注意：updated_at 在每次更新实体时都会设置为当前时间。
+    updated_at = Column(DateTime,
+                        default=lambda: datetime.now(timezone.utc),
+                        onupdate=lambda: datetime.now(timezone.utc), comment="更新时间")
     # 添加一个“tags”属性, 来引用“TagDB”类
     tags = relationship("TagDB", back_populates="user",
                         cascade="all, delete-orphan")
@@ -35,5 +35,7 @@ class UserDB(Base):
             "nickname": self.nickname,
             "email": self.email,
             "invite_code": self.invite_code,
-            "is_active": self.is_active
+            "is_active": self.is_active,
+            "created_at": self.created_at.isoformat() + "Z",  # 这里加上了 "Z"，表示 UTC 时间，方便前端处理
+            "updated_at": self.updated_at.isoformat() + "Z",  # 这里加上了 "Z"，表示 UTC 时间，方便前端处理
         }

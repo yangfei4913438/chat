@@ -14,13 +14,13 @@ class TagDB(Base):
     pin = Column(Boolean, comment="是否置顶")
     # 指定外键
     user_id = Column(BigInteger, ForeignKey('users.id'), comment="用户ID")
-    # 注意：create_at 在创建时设置为当前时间，之后不会更改。
-    create_at = Column(DateTime,
-                       default=lambda: datetime.now(timezone.utc), comment="创建时间")
-    # 注意：update_at 在每次更新实体时都会设置为当前时间。
-    update_at = Column(DateTime,
-                       default=lambda: datetime.now(timezone.utc),
-                       onupdate=lambda: datetime.now(timezone.utc), comment="更新时间")
+    # 注意：created_at 在创建时设置为当前时间，之后不会更改。
+    created_at = Column(DateTime,
+                        default=lambda: datetime.now(timezone.utc), comment="创建时间")
+    # 注意：updated_at 在每次更新实体时都会设置为当前时间。
+    updated_at = Column(DateTime,
+                        default=lambda: datetime.now(timezone.utc),
+                        onupdate=lambda: datetime.now(timezone.utc), comment="更新时间")
     # 添加一个“user”属性来引用“UserDB”类
     user = relationship("UserDB", back_populates="tags")
     # 添加一个“messages”属性来引用“MessageDB”类。back_populates 是指定 MessageDB 类中的 tag 属性
@@ -33,4 +33,6 @@ class TagDB(Base):
             "name": self.name,
             "pin": self.pin,
             "user_id": self.user_id,
+            "created_at": self.created_at.isoformat() + "Z",  # 这里加上了 "Z"，表示 UTC 时间，方便前端处理
+            "updated_at": self.updated_at.isoformat() + "Z",  # 这里加上了 "Z"，表示 UTC 时间，方便前端处理
         }

@@ -17,7 +17,7 @@ def createMessage(db: Session, message: MessageCreate):
     db.add(message_db)
     db.commit()
     db.refresh(message_db)
-    return message_db
+    return message_db.to_dict()
 
 
 def delMessage(db: Session, message_id: int):
@@ -29,7 +29,7 @@ def delMessage(db: Session, message_id: int):
 
     db.delete(message_db)
     db.commit()
-    return message_db
+    return message_db.to_dict()
 
 
 def get_message(db: Session, message_id: int) -> Message:

@@ -5,19 +5,20 @@ from models.tag import TagCreate, Tag, TagUpdate
 from utils.query_db import get_tag_by_id, get_tags_by_user_id, check_tag_name
 from utils.custom_log import log
 
+
 def create_tag(db: Session, tag: TagCreate) -> Tag:
     """ 创建标签 """
     can_use = check_tag_name(db, tag.name)
     if not can_use:
         log.error("标签名称已存在，返回 400 错误: %s", tag.name)
         raise HTTPException(status_code=400, detail="标签名称已存在")
-    
+
     db_tag = TagDB(user_id=tag.user_id, name=tag.name, pin=tag.pin)
     db.add(db_tag)
     db.commit()
     # 刷新对象以获取自动生成的 ID
     db.refresh(db_tag)
-    return db_tag
+    return db_tag.to_dict()
 
 
 def del_tag(db: Session, tag_id: int, user_id: int) -> Tag:
@@ -33,7 +34,7 @@ def del_tag(db: Session, tag_id: int, user_id: int) -> Tag:
     db.commit()
     # 注意：删除操作，不可以再使用 db_tag 对象刷新，因为它已经被删除了
     # 返回已删除的对象的最后状态
-    return db_tag
+    return db_tag.to_dict()
 
 
 def update_tag(db: Session, tag: TagUpdate):
@@ -53,7 +54,7 @@ def update_tag(db: Session, tag: TagUpdate):
         db_tag.name = tag.name
     db.commit()
     db.refresh(db_tag)
-    return db_tag
+    return db_tag.to_dict()
 
 
 def get_tag(db: Session, tag_id: int, user_id: int):
