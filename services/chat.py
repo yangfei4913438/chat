@@ -108,6 +108,8 @@ async def check_audio(websocket: WebSocket, target_dir: str, filename: str, file
                     "url": full_url
                 }
                 log.info("发送音频数据: %s", data)
+                # 等待 1 秒再发，避免客户端未准备好
+                await asyncio.sleep(1)
                 # 发送数据
                 await websocket.send_json(data)
             else:
