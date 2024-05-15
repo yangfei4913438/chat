@@ -103,7 +103,6 @@ class Master:
         #     # 返回结果
         #     return doc.content
 
-        log.info("返回结果: %s", result)
         # 返回结果
         return result
 

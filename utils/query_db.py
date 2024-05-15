@@ -54,8 +54,8 @@ def get_messages_by_user_id(db: Session, user_id: int):
 
 
 def get_messages_by_tag_id(db: Session, tag_id: int):
-    """ 从数据库获取消息列表 """
-    return db.query(MessageDB).filter(MessageDB.tag_id == tag_id).all()
+    """ 从数据库获取消息列表, 时间升序，最后的消息在最后，这样可以保证消息的顺序 """
+    return db.query(MessageDB).filter(MessageDB.tag_id == tag_id).order_by(MessageDB.updated_at.asc()).all()
 
 
 def get_message_by_id(db: Session, message_id: int):

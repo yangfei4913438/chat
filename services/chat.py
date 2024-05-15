@@ -15,7 +15,7 @@ def connect_ai(query: str, user_id: str):
     """ 连接 AI 服务 """
 
     # 创建 Master
-    master = Master(user_id)
+    master = Master(str(user_id))
 
     # 生成唯一标识
     uid = str(uuid.uuid4())
@@ -28,7 +28,7 @@ def connect_ai(query: str, user_id: str):
     data = result["output"]
 
     # 添加到后台任务
-    asyncio.create_task(master.get_voice(data, uid))
+    asyncio.create_task(master.get_voice(data.replace("*", ""), uid))
 
     # 返回结果
     return {"msg": data, "id": uid}
@@ -38,7 +38,7 @@ def connect_ai(query: str, user_id: str):
 connected_clients: Dict[str, WebSocket] = {}
 
 
-async def connect_ws(websocket: WebSocket, token: str, role: Optional[str] = None, user_id: Optional[str] = None):
+async def connect_ws(websocket: WebSocket, token: str, role: Optional[str] = None, user_id: Optional[str] = None, tag_id: Optional[str] = None):
     """ 连接 WebSocket 服务 """
 
     # 模拟 http Bear Token
@@ -61,20 +61,29 @@ async def connect_ws(websocket: WebSocket, token: str, role: Optional[str] = Non
     log.info("用户 %s 已连接", client_id)
 
     try:
-        # 接收数据
-        data = await websocket.receive_text()
-        # 连接 AI 服务
-        result = connect_ai(data, client_id)
-        data = {
-            "id": result["id"],
-            "message": result["msg"]
-        }
-        # 发送数据给客户端
-        await websocket.send_json(data)
-        # 异步执行，音频发送
-        task = asyncio.create_task(check_audio(
-            websocket, 'audio', result['id'], "mp3"))
-        await task
+        while True:
+            # 接收数据
+            data = await websocket.receive_text()
+            log.info("新收到的数据: %s", data)
+
+            # 生成 连接 AI 服务的 key，用来识别用户
+            key = f"{client_id}"
+            if tag_id:
+                key = f"{client_id}_{tag_id}"
+            log.info("用户 %s 的 key: %s", client_id, key)
+
+            # 连接 AI 服务
+            result = connect_ai(data, key)
+            data = {
+                "id": result["id"],
+                "message": result["msg"]
+            }
+            # 发送数据给客户端
+            await websocket.send_json(data)
+            # 异步执行，音频发送
+            task = asyncio.create_task(check_audio(
+                websocket, 'audio', result['id'], "mp3"))
+            await task
 
     except WebSocketDisconnect:
         # 当客户端断开时，移除其连接

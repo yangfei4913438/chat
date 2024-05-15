@@ -12,7 +12,6 @@ def createMessage(db: Session, message: MessageCreate):
         type=message.type,
         content=message.content,
         sender_type=message.sender_type,
-        created_at=message.created_at,
         tag_id=message.tag_id)
     db.add(message_db)
     db.commit()

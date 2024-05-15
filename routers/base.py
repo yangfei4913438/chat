@@ -38,10 +38,16 @@ async def rag_file(pdf_file: UploadFile):
 @router.websocket("/ws/{token}/{role:str}/{user_id:str}")
 async def websocket_endpoint_role(websocket: WebSocket, token: str, role: Optional[str] = None, user_id: Optional[str] = None):
     """ WebSocket 服务, 有特权"""
-    await connect_ws(websocket, token, role, user_id)
+    await connect_ws(websocket, token, role, user_id, None)
 
 
 @router.websocket("/ws/{token}")
 async def websocket_endpoint(websocket: WebSocket, token: str):
     """ WebSocket 服务, 无特权 """
-    await connect_ws(websocket, token, None, None)
+    await connect_ws(websocket, token, None, None, None)
+
+
+@router.websocket("/ws/{token}/{tag_id}")
+async def websocket_endpoint_tag(websocket: WebSocket, token: str, tag_id: str):
+    """ WebSocket 服务, 无特权 """
+    await connect_ws(websocket, token, None, None, tag_id)

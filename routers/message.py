@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from services.guard import check_token
-from utils.query_db import get_messages_by_tag_id, check_message_id
+from utils.query_db import get_messages_by_tag_id, check_message_id, check_tag_id
 from utils.db import get_db, redis_client, obj_list_from_redis, obj_list_into_redis
 from services.message import delMessage, createMessage
 from models.message import MessageCreate
@@ -57,4 +57,17 @@ def del_message(tag_id: int, message_id: int, db: Session = Depends(get_db)):
 @router.post('/message', dependencies=[Depends(check_token)])
 def add_message(message: MessageCreate, db: Session = Depends(get_db)):
     """ 添加消息 """
+    is_null = check_tag_id(db, message.tag_id)
+    if is_null:
+        log.error("会话不存在，返回 404 错误")
+        # 返回 404 错误，资源不存在
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="会话不存在, 请先创建会话"
+        )
+
+    # 先删除内存中的数据。
+    redis_client.delete(f"messages:{message.tag_id}")
+
+    # 再创建用户
     return createMessage(db, message)
