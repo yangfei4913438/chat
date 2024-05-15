@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException, status
-from passlib import context
+from argon2 import PasswordHasher
 import jwt
 
 from utils.db import get_db
@@ -17,12 +17,22 @@ ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
 
 # 密码加密
-pwd_context = context.CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = PasswordHasher(memory_cost=204800, hash_len=32, salt_len=16)
+
+
+def get_hash_password(password: str):
+    """ 获取加密密码 """
+    return pwd_context.hash(password)
 
 
 def verify_password(password: str, hashed_password: str):
     """ 验证密码 """
-    return pwd_context.verify(password, hashed_password)
+    log.info('password: %s, hashed_password: %s', password, hashed_password)
+    try:
+        return pwd_context.verify(hashed_password, password)
+    except Exception as exc:
+        log.error("密码验证失败: %s", exc)
+        return False
 
 
 def create_token(user_id: str):

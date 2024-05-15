@@ -31,12 +31,11 @@ pytz = "*"
 sqlalchemy = "*"
 pydantic = "*"
 python-jwt = "*"
-passlib = "*"
 psycopg2-binary = "*"
 pyjwt = "*"
-bcrypt = "*"
 docx2txt = "*"
 nltk = "*"
+argon2-cffi = "*"
 
 [dev-packages]
 

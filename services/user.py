@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 from utils.db import redis_client
 from database.user import UserDB
 from models.user import UserCreate, UserLogin, UserReturn, UserUpdate
-from services.auth import pwd_context, verify_password, create_token
+from services.auth import verify_password, create_token, get_hash_password
 from utils.query_db import get_user_by_id, get_user_by_username, check_user_name
 from utils.custom_log import log
 
@@ -31,7 +31,7 @@ def create_user(db: Session, user: UserCreate):
             detail="用户名已存在"
         )
 
-    hashed_password = pwd_context.hash(user.password)
+    hashed_password = get_hash_password(user.password)
     db_user = UserDB(
         username=user.username,
         nickname=user.nickname,
@@ -90,7 +90,7 @@ def update_user(db: Session, user_id: int, user: UserUpdate):
 
     # 更新用户数据
     if user.password:
-        target_user.hashed_password = pwd_context.hash(user.password)
+        target_user.hashed_password = get_hash_password(user.password)
 
     if user.username:
         can_use = check_user_name(db, user.username)

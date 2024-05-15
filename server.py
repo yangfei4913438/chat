@@ -13,7 +13,7 @@ import os
 
 redis_host = os.getenv("REDIS_HOST")
 
-if redis_host == 'localhost':
+if redis_host == '192.168.50.10':
     import tracemalloc
 
     tracemalloc.start()

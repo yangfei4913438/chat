@@ -7,7 +7,6 @@ class MessageCreate(BaseModel):
     type: str
     content: str
     sender_type: int
-    created_at: int
 
 
 class Message(MessageCreate):

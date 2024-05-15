@@ -1,4 +1,5 @@
-from sqlalchemy import Boolean, Column, String, BigInteger
+from sqlalchemy import Boolean, Column, String, BigInteger, DateTime
+from datetime import datetime, timezone
 from sqlalchemy.orm import relationship
 from utils.orm import Base
 
@@ -16,6 +17,13 @@ class UserDB(Base):
     hashed_password = Column(String, comment="哈希密码")
     invite_code = Column(String, comment="邀请码")
     is_active = Column(Boolean, default=True, comment="是否激活")
+    # 注意：create_at 在创建时设置为当前时间，之后不会更改。
+    create_at = Column(DateTime,
+                       default=lambda: datetime.now(timezone.utc), comment="创建时间")
+    # 注意：update_at 在每次更新实体时都会设置为当前时间。
+    update_at = Column(DateTime,
+                       default=lambda: datetime.now(timezone.utc),
+                       onupdate=lambda: datetime.now(timezone.utc), comment="更新时间")
     # 添加一个“tags”属性, 来引用“TagDB”类
     tags = relationship("TagDB", back_populates="user",
                         cascade="all, delete-orphan")

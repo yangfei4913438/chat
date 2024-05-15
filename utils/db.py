@@ -8,7 +8,11 @@ from database import *
 
 
 # 创建数据库模型
-engine = create_engine(os.getenv("POSTGRES_URL"))
+engine = create_engine(
+    url=os.getenv("POSTGRES_URL"),
+    pool_size=20,
+    max_overflow=50
+)
 # 创建数据库会话, 不自动提交，不自动刷新，绑定到 engine
 SessionLocal = orm.sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
