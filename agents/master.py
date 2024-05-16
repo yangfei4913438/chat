@@ -1,7 +1,7 @@
 import os
 
 import requests
-from langchain.agents import AgentExecutor, create_openai_tools_agent
+from langchain.agents import AgentExecutor, create_tool_calling_agent
 from langchain.memory import ConversationTokenBufferMemory
 from langchain_community.chat_message_histories.redis import RedisChatMessageHistory
 from langchain_core.output_parsers import StrOutputParser
@@ -27,7 +27,6 @@ class Master:
             model=os.getenv('OPENAI_MODEL'),
             api_key=os.getenv('OPENAI_API_KEY'),
             base_url=os.getenv('OPENAI_API_BASE'),
-            streaming=True,  # 支持流式处理, 支持 websocket
             temperature=0,  # 不让模型生成随机性
         )
         self.QingXu = "default"
@@ -62,8 +61,8 @@ class Master:
             MessagesPlaceholder(variable_name="agent_scratchpad")
         ])
 
-        # 创建 agent
-        agent = create_openai_tools_agent(
+        # 创建 agent, create_tool_calling_agent 对不同的大模型进行了封装，可以直接调用工具
+        agent = create_tool_calling_agent(
             llm=self.chatModel,
             prompt=self.prompt,
             tools=tools
