@@ -36,7 +36,8 @@ def connect_ai(query: str, user_id: str):
             text += token
         log.info("返回文本: %s", text)
         # 添加到后台任务, 去掉星号是避免语音读出来
-        asyncio.create_task(master.get_voice(text.replace("*", ""), uid))
+        asyncio.create_task(master.get_voice(
+            text.replace("*", "").replace("#", ""), uid))
 
     generate = predict()
 

@@ -6,6 +6,7 @@ from models.chat import ChatBody
 from services.guard import check_token
 from services.rag import save_file, add_url
 from services.chat import connect_ai, connect_ws
+import json
 
 
 router = APIRouter()
@@ -21,7 +22,7 @@ def read_root():
 async def chat(body: ChatBody, user_id: int = Depends(check_token), ):
     """ 对话接口 """
     result = connect_ai(body.query, user_id)
-    return StreamingResponse(result["generate"], media_type="text/event-stream")
+    return StreamingResponse(result["generate"], media_type="text/event-stream", headers={"id": result["id"]})
 
 
 @router.post("/add_url", dependencies=[Depends(check_token)])
