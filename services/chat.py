@@ -1,6 +1,7 @@
 import os
 import uuid
 import asyncio
+from fastapi.responses import StreamingResponse
 from fastapi.websockets import WebSocket, WebSocketDisconnect
 from fastapi.security import HTTPAuthorizationCredentials
 from typing import Dict, Optional
@@ -25,13 +26,22 @@ def connect_ai(query: str, user_id: str):
 
     log.info("返回数据: %s", result)
 
-    data = result["output"]
+    async def predict():
+        text = ""
+        for _token in result:
+            # 检查 _token 的结构，并根据实际情况访问其内容
+            log.info("Token 数据: %s", _token)
+            token = _token.get('output', '')
+            yield token
+            text += token
+        log.info("返回文本: %s", text)
+        # 添加到后台任务, 去掉星号是避免语音读出来
+        asyncio.create_task(master.get_voice(text.replace("*", ""), uid))
 
-    # 添加到后台任务
-    asyncio.create_task(master.get_voice(data.replace("*", ""), uid))
+    generate = predict()
 
     # 返回结果
-    return {"msg": data, "id": uid}
+    return {"generate": generate, "id": uid}
 
 
 # 存储client_id及其对应的WebSocket连接
@@ -74,12 +84,16 @@ async def connect_ws(websocket: WebSocket, token: str, role: Optional[str] = Non
 
             # 连接 AI 服务
             result = connect_ai(data, key)
-            data = {
-                "id": result["id"],
-                "message": result["msg"]
-            }
+
             # 发送数据给客户端
-            await websocket.send_json(data)
+            async for chunk in result["generate"]:
+                # 构建数据
+                data = {
+                    "id": result['id'],
+                    "message": chunk
+                }
+                await websocket.send_json(data)
+
             # 异步执行，音频发送
             task = asyncio.create_task(check_audio(
                 websocket, 'audio', result['id'], "mp3"))
@@ -89,6 +103,8 @@ async def connect_ws(websocket: WebSocket, token: str, role: Optional[str] = Non
         # 当客户端断开时，移除其连接
         del connected_clients[client_id]
         log.info("用户 %s 断开连接", client_id)
+    finally:
+        await websocket.close()
 
 
 async def check_audio(websocket: WebSocket, target_dir: str, filename: str, file_extension: str = "mp3"):
@@ -108,8 +124,6 @@ async def check_audio(websocket: WebSocket, target_dir: str, filename: str, file
                     "url": full_url
                 }
                 log.info("发送音频数据: %s", data)
-                # 等待 1 秒再发，避免客户端未准备好
-                await asyncio.sleep(1)
                 # 发送数据
                 await websocket.send_json(data)
             else:

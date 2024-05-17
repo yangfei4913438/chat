@@ -12,3 +12,9 @@ class MessageCreate(BaseModel):
 class Message(MessageCreate):
     """ 返回给用户的消息模型 """
     id: int
+
+
+class MessageUpdate(BaseModel):
+    """ 更新消息模型 """
+    id: int
+    content: str

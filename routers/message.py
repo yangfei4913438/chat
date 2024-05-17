@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 from services.guard import check_token
 from utils.query_db import get_messages_by_tag_id, check_message_id, check_tag_id
 from utils.db import get_db, redis_client, obj_list_from_redis, obj_list_into_redis
-from services.message import delMessage, createMessage
-from models.message import MessageCreate
+from services.message import delMessage, createMessage, updateMessage
+from models.message import MessageCreate, MessageUpdate
 from utils.custom_log import log
 
 router = APIRouter()
@@ -71,3 +71,21 @@ def add_message(message: MessageCreate, db: Session = Depends(get_db)):
 
     # 再创建用户
     return createMessage(db, message)
+
+
+@router.put('/message', dependencies=[Depends(check_token)])
+def update_message(message: MessageUpdate, db: Session = Depends(get_db)):
+    """ 更新消息 """
+    check_exist = check_message_id(db, message.id)
+    if check_exist:
+        # 返回 404 错误，资源不存在
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="消息不存在"
+        )
+
+    # 先删除内存中的数据。
+    redis_client.delete(f"messages:{message.tag_id}")
+
+    # 再更新用户
+    return updateMessage(db, message)

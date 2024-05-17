@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from utils.query_db import get_message_by_id, get_messages_by_tag_id
-from models.message import MessageCreate, Message
+from models.message import MessageCreate, Message, MessageUpdate
 from database.message import MessageDB
 from fastapi import HTTPException
 from typing import List
@@ -28,6 +28,23 @@ def delMessage(db: Session, message_id: int):
 
     db.delete(message_db)
     db.commit()
+    return message_db.to_dict()
+
+
+def updateMessage(db: Session, message: MessageUpdate):
+    """ 更新消息 """
+    message_db = get_message_by_id(db, message.id)
+
+    if message_db is None:
+        raise HTTPException(status_code=404, detail="消息不存在")
+
+    if not message.content:
+        raise HTTPException(status_code=400, detail="消息内容不能为空")
+    else:
+        message_db.content = message.content
+
+    db.commit()
+    db.refresh(message_db)
     return message_db.to_dict()
 
 

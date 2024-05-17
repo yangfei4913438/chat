@@ -27,6 +27,7 @@ class Master:
             model=os.getenv('OPENAI_MODEL'),
             api_key=os.getenv('OPENAI_API_KEY'),
             base_url=os.getenv('OPENAI_API_BASE'),
+            streaming=True,
             temperature=0,  # 不让模型生成随机性
         )
         self.QingXu = "default"
@@ -84,10 +85,7 @@ class Master:
         self.qingxu_chain(query)
 
         # 执行 agent
-        result = self.agent_executor.invoke(
-            {"input": query},
-            return_only_outputs=True  # 只返回output输出
-        )
+        result = self.agent_executor.stream({"input": query})
 
         # data = result["intermediate_steps"][0]
         # action = data[0]

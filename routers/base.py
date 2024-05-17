@@ -1,5 +1,6 @@
 from typing import Optional
 from fastapi import UploadFile, WebSocket, Depends, APIRouter
+from fastapi.responses import StreamingResponse
 from utils.custom_log import log
 from models.chat import ChatBody
 from services.guard import check_token
@@ -19,7 +20,8 @@ def read_root():
 @router.post("/chat")
 async def chat(body: ChatBody, user_id: int = Depends(check_token), ):
     """ 对话接口 """
-    return connect_ai(body.query, user_id)
+    result = connect_ai(body.query, user_id)
+    return StreamingResponse(result["generate"], media_type="text/event-stream")
 
 
 @router.post("/add_url", dependencies=[Depends(check_token)])
